@@ -7,7 +7,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(cors())
+app.use(cors());
 app.use(express.json());
 
 // mongodb
@@ -25,18 +25,25 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-  //  await client.connect();
+    //  await client.connect();
 
     const toyCollection = client.db("toyMarketplace").collection("allToy");
 
     app.get("/allToy", async (req, res) => {
-      const result = await toyCollection.find().toArray();
-      res.json(result);
+      if(req.query?.email){
+        const email = req.query?.email;
+        const query ={sellerEmail: email}
+        const result = await toyCollection.find(query).toArray();
+        res.json(result)
+      }else{
+        const result = await toyCollection.find().limit(20).sort({price: -1}).toArray();
+        res.json(result);
+      }
     });
-    
+
     app.get("/allToy/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
       const result = await toyCollection.findOne(query);
       res.json(result);
     });
