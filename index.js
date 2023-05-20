@@ -2,18 +2,12 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
 const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-const corsConfig = {
-  origin: '',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE']
-}
-app.use(cors(corsConfig))
-app.options("", cors(corsConfig))
-
+app.use(cors())
 app.use(express.json());
 
 // mongodb
@@ -37,22 +31,23 @@ async function run() {
 
     app.get("/allToy", async (req, res) => {
       const result = await toyCollection.find().toArray();
-      res.send(result);
+      res.json(result);
     });
 
     app.post("/allToy", async (req, res) => {
       const toy = req.body;
       const result = await toyCollection.insertOne(toy);
-      res.send(result);
+      res.json(result);
     });
+    
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
