@@ -28,19 +28,26 @@ async function run() {
     //  await client.connect();
 
     const toyCollection = client.db("toyMarketplace").collection("allToy");
-
+    //for specified user and everyone
     app.get("/allToy", async (req, res) => {
-      if(req.query?.email){
+      if (req.query?.email) {
         const email = req.query?.email;
-        const query ={sellerEmail: email}
+        const query = { sellerEmail: email };
         const result = await toyCollection.find(query).toArray();
-        res.json(result)
-      }else{
-        const result = await toyCollection.find().limit(20).sort({price: -1}).toArray();
         res.json(result);
       }
+    else{
+      const result = await toyCollection
+      .find()
+      .limit(20)
+      .sort({ price: -1 })
+      .toArray();
+    res.json(result);
+    }
     });
 
+    
+    // for single data
     app.get("/allToy/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -48,12 +55,20 @@ async function run() {
       res.json(result);
     });
 
+    // create single data
     app.post("/allToy", async (req, res) => {
       const toy = req.body;
       const result = await toyCollection.insertOne(toy);
       res.json(result);
     });
 
+    // delete single data
+    app.delete("/allToy/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await toyCollection.deleteOne(query);
+      res.json(result);
+    });
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     // console.log(
