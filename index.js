@@ -28,25 +28,38 @@ async function run() {
     //  await client.connect();
 
     const toyCollection = client.db("toyMarketplace").collection("allToy");
+
+    const indexKeys = { toyName: 1 }; // Replace field1 with your actual field names
+    const indexOptions = { name: "toyName" }; // Replace index_name with the desired index name
+    // const result = await toyCollection.createIndex(indexKeys, indexOptions);
+    toyCollection.createIndex(indexKeys, indexOptions);
+
     //for specified user and everyone
     app.get("/allToy", async (req, res) => {
       if (req.query?.email) {
         const email = req.query?.email;
         const query = { sellerEmail: email };
-        const result = await toyCollection.find(query).toArray();
+        const result = await toyCollection
+          .find(query)
+          .sort({ price: -1 })
+          .toArray();
         res.json(result);
       }
-    else{
-      const result = await toyCollection
-      .find()
-      .limit(20)
-      .sort({ price: -1 })
-      .toArray();
-    res.json(result);
-    }
+       else {
+        const result = await toyCollection.find().limit(20).toArray();
+        res.json(result);
+      }
     });
 
-    
+    // for sub-category
+    app.get("/category/:subCategory", async (req, res) => {
+      const subCategory = req.params.subCategory;
+      const result = await toyCollection
+        .find({ subCategory: subCategory })
+        .toArray();
+      res.json(result);
+    });
+
     // for single data
     app.get("/allToy/:id", async (req, res) => {
       const id = req.params.id;
@@ -55,10 +68,37 @@ async function run() {
       res.json(result);
     });
 
+    // get toy by text
+    app.get("/getToyByText/:text", async (req, res) => {
+      const text = req.params.text;
+      const result = await toyCollection
+        .find({ toyName: { $regex: text, $options: "i" }
+          // $or: [{ toyName: { $regex: text, $options: "i" } }],
+        })
+        .toArray();
+      res.json(result);
+    });
+
     // create single data
     app.post("/allToy", async (req, res) => {
       const toy = req.body;
       const result = await toyCollection.insertOne(toy);
+      res.json(result);
+    });
+
+    // update
+    app.patch("/allToy/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateToy = req.body;
+      const updateDoc = {
+        $set: {
+          price: updateToy.price,
+          quantity: updateToy.quantity,
+          description: updateToy.description,
+        },
+      };
+      const result = await toyCollection.updateOne(filter, updateDoc);
       res.json(result);
     });
 
