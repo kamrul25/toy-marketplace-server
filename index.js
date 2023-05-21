@@ -42,10 +42,10 @@ async function run() {
         const result = await toyCollection
           .find(query)
           .sort({ price: -1 })
+          .collation({ locale: "en_US", numericOrdering: true })
           .toArray();
         res.json(result);
-      }
-       else {
+      } else {
         const result = await toyCollection.find().limit(20).toArray();
         res.json(result);
       }
@@ -72,9 +72,7 @@ async function run() {
     app.get("/getToyByText/:text", async (req, res) => {
       const text = req.params.text;
       const result = await toyCollection
-        .find({ toyName: { $regex: text, $options: "i" }
-          // $or: [{ toyName: { $regex: text, $options: "i" } }],
-        })
+        .find({ toyName: { $regex: text, $options: "i" } })
         .toArray();
       res.json(result);
     });
